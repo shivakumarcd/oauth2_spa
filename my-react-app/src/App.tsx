@@ -13,6 +13,26 @@ function App() {
     return <p>Error: {auth.error.message}</p>;
   }
 
+    if (import.meta.env.DEV && auth.user) {
+        const decodeJwt = (token?: string): unknown => {
+            if (!token) return "Token was not issued";
+
+            const parts = token.split(".");
+            if (parts.length !== 3) return "Token has no readable JWT payload";
+
+            try {
+                const base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+                const bytes = Uint8Array.from(atob(base64), (char) => char.charCodeAt(0));
+                return JSON.parse(new TextDecoder().decode(bytes));
+            } catch {
+                return "Token has no readable JWT payload";
+            }
+        };
+
+        console.log("Access token claims:", decodeJwt(auth.user.access_token));
+        console.log("ID token claims:", decodeJwt(auth.user.id_token));
+        console.log("Refresh token claims:", decodeJwt(auth.user.refresh_token));
+    }
   // Logged in
   if (auth.isAuthenticated) {
     return (
